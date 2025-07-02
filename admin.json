@@ -1,0 +1,13 @@
+{
+    "title": "Control",
+    "icon": "ElementPlus",
+    "path": "/app/control/admin",
+    "sort": 3999,
+    "children": [
+        {
+            "title": "系统设置",
+            "path": "/app/control/admin/settings/basic",
+            "component": "form"
+        }
+    ]
+}

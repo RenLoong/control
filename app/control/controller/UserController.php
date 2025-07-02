@@ -5,7 +5,7 @@ namespace plugin\control\app\control\controller;
 use app\Basic;
 use app\expose\build\builder\FormBuilder;
 use app\expose\enum\ResponseEvent;
-use app\model\User;
+use plugin\user\app\model\PluginUser;
 use app\validate\User as ValidateUser;
 use loong\oauth\facade\Auth;
 use support\Request;
@@ -24,7 +24,7 @@ class UserController extends Basic
             } catch (\Throwable $th) {
                 return $this->exception($th);
             }
-            $User = User::where(['id' => $D['id']])->find();
+            $User = PluginUser::where(['id' => $D['id']])->find();
             if (!$User) {
                 return $this->fail('用户不存在');
             }
@@ -43,7 +43,7 @@ class UserController extends Basic
             }
             return $this->fail('保存失败');
         }
-        $User = User::where(['id' => $id])->withoutField('password')->find();
+        $User = PluginUser::where(['id' => $id])->withoutField('password')->find();
         if (!$User) {
             return $this->fail('用户不存在');
         }
@@ -90,8 +90,8 @@ class UserController extends Basic
     }
     public function getInfo(Request $request)
     {
-        $User = User::where(['id' => $request->uid])->withoutField('password')->find();
-        return $this->resData(User::getTokenInfo($User));
+        $User = PluginUser::where(['id' => $request->uid])->withoutField('password')->find();
+        return $this->resData(PluginUser::getTokenInfo($User));
     }
     public function refresh()
     {

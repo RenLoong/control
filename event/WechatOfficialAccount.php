@@ -4,8 +4,8 @@ namespace plugin\control\event;
 use app\expose\enum\EventName;
 use app\expose\helper\Uploads;
 use app\expose\utils\wechat\modules\Reply;
-use app\model\User;
-use app\model\UserWechat;
+use plugin\user\app\model\PluginUser;
+use plugin\user\app\model\PluginUserWechat;
 use support\Log;
 use support\Redis;
 use think\facade\Db;
@@ -18,17 +18,17 @@ class WechatOfficialAccount
     {
         Db::startTrans();
         try {
-            $UserWechat=UserWechat::where('openid',$data['FromUserName'])->find();
+            $UserWechat=PluginUserWechat::where('openid',$data['FromUserName'])->find();
             if($UserWechat)
             {
                 if($UserWechat->uid){
-                    $User=User::where('id',$UserWechat->uid)->find();
+                    $User=PluginUser::where('id',$UserWechat->uid)->find();
                     Redis::set($data['EventKey'].'_callback',$User->id,'EX',60);
                     Db::commit();
                     Event::emit(EventName::USER_LOGIN['value'], $User);
                     return $this->replyText($data,'欢迎登录：'.$User->nickname);
                 }
-                $User=new User();
+                $User=new PluginUser();
                 if($UserWechat->nickname){
                     $User->nickname=$UserWechat->nickname;
                 }
@@ -44,13 +44,13 @@ class WechatOfficialAccount
                 $User->activation_time=date('Y-m-d H:i:s');
                 $User->save();
             }else{
-                $User=new User();
+                $User=new PluginUser();
                 if(isset($data['params'])&&isset($data['params']['puid'])){
                     $User->puid=$data['params']['puid'];
                 }
                 $User->activation_time=date('Y-m-d H:i:s');
                 $User->save();
-                $UserWechat=new UserWechat();
+                $UserWechat=new PluginUserWechat();
                 $UserWechat->openid=$data['FromUserName'];
             }
             $UserWechat->subscribe=1;

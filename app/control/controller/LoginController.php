@@ -9,13 +9,13 @@ use app\expose\enum\ResponseCode;
 use app\expose\enum\State;
 use app\expose\helper\Captcha;
 use app\expose\helper\Config;
-use app\expose\helper\User as HelperUser;
 use app\expose\helper\Vcode;
 use app\expose\helper\Wechat;
 use app\expose\utils\wechat\OfficialAccount;
-use app\model\User;
+use plugin\user\app\model\PluginUser;
 use Exception;
 use GuzzleHttp\Client;
+use plugin\user\expose\helper\User as HelperUser;
 use support\Redis;
 use support\Request;
 use Webman\Event\Event;
@@ -39,7 +39,7 @@ class LoginController extends Basic
         }
         $where = [];
         $where[] = ['mobile|username', '=', $D['username']];
-        $User = User::where($where)->find();
+        $User = PluginUser::where($where)->find();
         if (!$User) {
             throw new Exception('用户不存在');
         }
@@ -59,7 +59,7 @@ class LoginController extends Basic
         $User->login_time = date('Y-m-d H:i:s');
         if ($User->save()) {
             Event::emit(EventName::USER_LOGIN['value'], $User);
-            return $this->success('登录成功', User::getTokenInfo($User));
+            return $this->success('登录成功', PluginUser::getTokenInfo($User));
         } else {
             throw new Exception("登录失败");
         }
@@ -72,13 +72,13 @@ class LoginController extends Basic
         if (!Vcode::check($username, $vcode, 'login', $token)) {
             return $this->fail('验证码不正确');
         }
-        $User = User::where(['mobile' => $username])->find();
+        $User = PluginUser::where(['mobile' => $username])->find();
         if (empty($User)) {
             try {
                 HelperUser::register([
                     'mobile' => $username
                 ]);
-                $User = User::where(['mobile' => $username])->find();
+                $User = PluginUser::where(['mobile' => $username])->find();
             } catch (\Throwable $th) {
                 return $this->exception($th);
             }
@@ -93,7 +93,7 @@ class LoginController extends Basic
         $User->login_time = date('Y-m-d H:i:s');
         if ($User->save()) {
             Event::emit(EventName::USER_LOGIN['value'], $User);
-            return $this->success('登录成功', User::getTokenInfo($User));
+            return $this->success('登录成功', PluginUser::getTokenInfo($User));
         } else {
             throw new Exception("登录失败");
         }
@@ -141,9 +141,9 @@ class LoginController extends Basic
         $id=$request->post('id');
         $uid=Redis::get($id.'_callback');
         if($uid){
-            $User=User::where('id',$uid)->find();
+            $User=PluginUser::where('id',$uid)->find();
             if($User){
-                return $this->success('登录成功', User::getTokenInfo($User));
+                return $this->success('登录成功', PluginUser::getTokenInfo($User));
             }else{
                 return $this->fail('登录失败');
             }
